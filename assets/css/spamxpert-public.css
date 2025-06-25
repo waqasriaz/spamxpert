@@ -1,0 +1,52 @@
+/**
+ * SpamXpert Public CSS
+ * Keep minimal for performance (< 5KB)
+ */
+
+/* Hide honeypot fields - multiple methods for better compatibility */
+.spamxpert-hp-field {
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Additional hiding for screen readers */
+.spamxpert-hp-field * {
+    display: none !important;
+}
+
+/* Ensure honeypot fields are not focusable */
+.spamxpert-hp-field input,
+.spamxpert-hp-field textarea,
+.spamxpert-hp-field select {
+    tabindex: -1 !important;
+}
+
+/* Debug mode styles */
+body.spamxpert-debug .spamxpert-hp-field {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    height: auto !important;
+    width: auto !important;
+    visibility: visible !important;
+    opacity: 0.5 !important;
+    background: #ffcccc !important;
+    border: 2px dashed #ff0000 !important;
+    padding: 10px !important;
+    margin: 10px 0 !important;
+}
+
+body.spamxpert-debug .spamxpert-hp-field::before {
+    content: 'HONEYPOT FIELD (Debug Mode)' !important;
+    display: block !important;
+    color: #ff0000 !important;
+    font-weight: bold !important;
+    margin-bottom: 5px !important;
+}
