@@ -20,7 +20,9 @@ $current_page = isset($filters['page']) ? $filters['page'] : 1;
 <div class="wrap">
     <h1>
         <?php echo esc_html__('Spam Logs', 'spamxpert'); ?>
-        <?php if ($total > 0): ?>
+        <?php if (!spamxpert_is_pro()): ?>
+            <span class="spamxpert-pro-badge"><?php _e('PRO', 'spamxpert'); ?></span>
+        <?php elseif ($total > 0): ?>
             <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=spamxpert-logs&action=clear_all_logs'), 'spamxpert_clear_logs'); ?>" 
                class="page-title-action" 
                onclick="return confirm('<?php echo esc_js(__('Are you sure you want to clear all logs?', 'spamxpert')); ?>');">
@@ -30,16 +32,8 @@ $current_page = isset($filters['page']) ? $filters['page'] : 1;
     </h1>
     
     <?php if (!spamxpert_is_pro()): ?>
-    <div class="spamxpert-free-notice" style="margin-top: 20px;">
-        <p>
-            <span class="dashicons dashicons-star-empty"></span>
-            <strong><?php _e('Pro Tip:', 'spamxpert'); ?></strong>
-            <?php _e('Upgrade to Pro for advanced analytics, IP reputation checking, geo-blocking, and real-time threat intelligence.', 'spamxpert'); ?>
-            <a href="<?php echo esc_url(spamxpert_get_upgrade_url('logs_notice')); ?>" target="_blank">
-                <?php _e('Learn more', 'spamxpert'); ?> →
-            </a>
-        </p>
-    </div>
+    <div class="spamxpert-pro-feature spamxpert-logs-pro-wrapper">
+        <div class="spamxpert-blurred-content">
     <?php endif; ?>
     
     <!-- Filters -->
@@ -145,5 +139,21 @@ $current_page = isset($filters['page']) ? $filters['page'] : 1;
         <div class="spamxpert-empty-state">
             <p><?php _e('No spam attempts have been logged yet.', 'spamxpert'); ?></p>
         </div>
+    <?php endif; ?>
+    
+    <?php if (!spamxpert_is_pro()): ?>
+        </div><!-- .spamxpert-blurred-content -->
+        
+        <div class="spamxpert-pro-overlay">
+            <div class="spamxpert-pro-content">
+                <span class="dashicons dashicons-list-view"></span>
+                <h3><?php _e('Detailed Spam Logs', 'spamxpert'); ?></h3>
+                <p><?php _e('Access comprehensive spam logs with filtering, search, and export capabilities. Track spam patterns and identify repeat offenders.', 'spamxpert'); ?></p>
+                <a href="<?php echo esc_url(spamxpert_get_upgrade_url('logs_overlay')); ?>" class="button" target="_blank">
+                    <?php _e('Upgrade to Pro', 'spamxpert'); ?>
+                </a>
+            </div>
+        </div>
+    </div><!-- .spamxpert-pro-feature -->
     <?php endif; ?>
 </div> 

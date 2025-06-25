@@ -110,27 +110,96 @@ class SpamXpert_Admin {
      * Render logs page
      */
     public function render_logs_page() {
-        // Get logger instance
-        $logger = SpamXpert::get_instance()->get_module('logger');
-        
-        // Get current page
-        $current_page = isset($_GET['paged']) ? absint($_GET['paged']) : 1;
-        
-        // Get filters
-        $filters = array(
-            'page' => $current_page,
-            'per_page' => 20,
-            'form_type' => isset($_GET['form_type']) ? sanitize_text_field($_GET['form_type']) : '',
-            'ip_address' => isset($_GET['ip_address']) ? sanitize_text_field($_GET['ip_address']) : '',
-            'date_from' => isset($_GET['date_from']) ? sanitize_text_field($_GET['date_from']) : '',
-            'date_to' => isset($_GET['date_to']) ? sanitize_text_field($_GET['date_to']) : ''
-        );
-        
-        // Get logs
-        $result = $logger ? $logger->get_logs($filters) : array('logs' => array(), 'total' => 0, 'pages' => 0);
+        // Check if pro
+        if (!spamxpert_is_pro()) {
+            // Generate dummy data for free version
+            $result = $this->get_dummy_logs_data();
+            $filters = array(
+                'page' => 1,
+                'per_page' => 20,
+                'form_type' => '',
+                'ip_address' => '',
+                'date_from' => '',
+                'date_to' => ''
+            );
+        } else {
+            // Get logger instance for pro version
+            $logger = SpamXpert::get_instance()->get_module('logger');
+            
+            // Get current page
+            $current_page = isset($_GET['paged']) ? absint($_GET['paged']) : 1;
+            
+            // Get filters
+            $filters = array(
+                'page' => $current_page,
+                'per_page' => 20,
+                'form_type' => isset($_GET['form_type']) ? sanitize_text_field($_GET['form_type']) : '',
+                'ip_address' => isset($_GET['ip_address']) ? sanitize_text_field($_GET['ip_address']) : '',
+                'date_from' => isset($_GET['date_from']) ? sanitize_text_field($_GET['date_from']) : '',
+                'date_to' => isset($_GET['date_to']) ? sanitize_text_field($_GET['date_to']) : ''
+            );
+            
+            // Get logs
+            $result = $logger ? $logger->get_logs($filters) : array('logs' => array(), 'total' => 0, 'pages' => 0);
+        }
         
         // Include logs template
         include SPAMXPERT_PLUGIN_DIR . 'templates/admin/logs.php';
+    }
+    
+    /**
+     * Get dummy logs data for free version
+     */
+    private function get_dummy_logs_data() {
+        $dummy_logs = array();
+        $current_time = current_time('timestamp');
+        
+        // Generate 20 dummy log entries
+        for ($i = 0; $i < 20; $i++) {
+            $log = new stdClass();
+            $log->id = $i + 1;
+            // Random time intervals for more realistic data
+            $time_offset = $i * rand(1800, 7200) + rand(0, 1800); // 30 min to 2.5 hours apart
+            $log->blocked_at = date('Y-m-d H:i:s', $current_time - $time_offset);
+            
+            // Random form types
+            $form_types = array('wp_login', 'wp_registration', 'wp_comments', 'contact_form_7', 'houzez_contact');
+            $log->form_type = $form_types[array_rand($form_types)];
+            
+            // Random IPs (mix of realistic spam IPs)
+            $ips = array(
+                '185.220.' . rand(100, 103) . '.' . rand(1, 255),
+                '45.155.' . rand(204, 207) . '.' . rand(1, 255),
+                '104.244.' . rand(72, 79) . '.' . rand(1, 255),
+                '162.247.' . rand(72, 75) . '.' . rand(1, 255),
+                '199.195.' . rand(250, 255) . '.' . rand(1, 255)
+            );
+            $log->ip_address = $ips[array_rand($ips)];
+            
+            // Random reasons
+            $reasons = array('honeypot_field', 'time_trap', 'multiple_attempts', 'blacklisted_ip');
+            $log->spam_reason = $reasons[array_rand($reasons)];
+            
+            // Random score
+            $log->spam_score = rand(60, 100);
+            
+            // Random user agents
+            $agents = array(
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                'SpamBot/1.0 (automated submission tool)',
+                'Python-urllib/3.8'
+            );
+            $log->user_agent = $agents[array_rand($agents)];
+            
+            $dummy_logs[] = $log;
+        }
+        
+        return array(
+            'logs' => $dummy_logs,
+            'total' => 147, // Fake total
+            'pages' => 8    // Fake pages
+        );
     }
 
     /**
