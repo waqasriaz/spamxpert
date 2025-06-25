@@ -518,6 +518,113 @@
     }
 }
 
+/* Pro Feature Teaser Styles */
+.spamxpert-pro-feature {
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+}
+
+.spamxpert-pro-badge {
+    display: inline-block;
+    background: #ffd700;
+    color: #1a1a1a;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-left: 10px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.spamxpert-pro-overlay {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    backdrop-filter: blur(3px);
+}
+
+.spamxpert-pro-content {
+    text-align: center;
+    padding: 40px;
+    max-width: 400px;
+    z-index: 11;
+    position: relative;
+}
+
+.spamxpert-pro-content .dashicons {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #ffd700;
+    margin-bottom: 20px;
+}
+
+.spamxpert-pro-content h3 {
+    font-size: 20px;
+    margin: 0 0 15px 0;
+    color: var(--spamxpert-text);
+}
+
+.spamxpert-pro-content p {
+    color: var(--spamxpert-text-light);
+    margin: 0 0 20px 0;
+    line-height: 1.6;
+}
+
+.spamxpert-pro-content .button {
+    font-size: 16px;
+    padding: 10px 30px;
+    height: auto;
+    background: #ffd700;
+    border-color: #ffd700;
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+.spamxpert-pro-content .button:hover {
+    background: #ffcc00;
+    border-color: #ffcc00;
+    transform: translateY(-2px);
+}
+
+.spamxpert-blurred-content {
+    filter: blur(4px);
+    opacity: 0.4;
+    user-select: none;
+    pointer-events: none;
+    position: relative;
+    z-index: 1;
+    margin-top: 20px;
+}
+
+/* Free Feature Notice */
+.spamxpert-free-notice {
+    background: #f0f8ff;
+    border-left: 4px solid var(--spamxpert-info);
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.spamxpert-free-notice p {
+    margin: 0;
+    color: var(--spamxpert-text);
+}
+
+.spamxpert-free-notice .dashicons {
+    color: var(--spamxpert-info);
+    margin-right: 10px;
+}
+
 /* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
     .spamxpert-dashboard-cards .card,
@@ -531,6 +638,14 @@
     .spamxpert-dashboard-cards .card h3,
     .spamxpert-dashboard-panel h2,
     .spamxpert-settings-tabs .form-table th {
+        color: #f0f0f0;
+    }
+
+    .spamxpert-pro-overlay {
+        background: rgba(30, 30, 30, 0.97);
+    }
+
+    .spamxpert-pro-content h3 {
         color: #f0f0f0;
     }
 }

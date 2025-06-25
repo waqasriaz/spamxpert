@@ -66,83 +66,183 @@ $by_reason = isset($stats['by_reason']) ? $stats['by_reason'] : array();
     
     <div class="spamxpert-dashboard-row">
         <!-- Top Spam Sources -->
-        <div class="spamxpert-dashboard-panel">
-            <h2><?php _e('Top Spam Sources', 'spamxpert'); ?></h2>
-            <?php if (!empty($top_ips)): ?>
-                <table class="widefat">
-                    <thead>
-                        <tr>
-                            <th><?php _e('IP Address', 'spamxpert'); ?></th>
-                            <th><?php _e('Attempts', 'spamxpert'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($top_ips as $ip): ?>
-                            <tr>
-                                <td><?php echo esc_html($ip->ip_address); ?></td>
-                                <td><?php echo number_format($ip->count); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <div class="spamxpert-empty-state">
-                    <p><?php _e('No spam attempts recorded yet.', 'spamxpert'); ?></p>
+        <div class="spamxpert-dashboard-panel <?php echo !spamxpert_is_pro() ? 'spamxpert-pro-feature' : ''; ?>">
+            <h2>
+                <?php _e('Top Spam Sources', 'spamxpert'); ?>
+                <?php if (!spamxpert_is_pro()): ?>
+                    <span class="spamxpert-pro-badge"><?php _e('PRO', 'spamxpert'); ?></span>
+                <?php endif; ?>
+            </h2>
+            
+            <?php if (!spamxpert_is_pro()): ?>
+                <div class="spamxpert-pro-overlay">
+                    <div class="spamxpert-pro-content">
+                        <span class="dashicons dashicons-chart-area"></span>
+                        <h3><?php _e('Advanced Analytics', 'spamxpert'); ?></h3>
+                        <p><?php _e('Track spam sources, identify patterns, and block repeat offenders with detailed IP analytics.', 'spamxpert'); ?></p>
+                        <a href="<?php echo esc_url(spamxpert_get_upgrade_url('dashboard_sources')); ?>" class="button button-primary" target="_blank">
+                            <?php _e('Upgrade to Pro', 'spamxpert'); ?>
+                        </a>
+                    </div>
                 </div>
+                <div class="spamxpert-blurred-content">
+                    <table class="widefat">
+                        <thead>
+                            <tr>
+                                <th>192.168.x.xxx</th>
+                                <th>245</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>10.0.x.xxx</td><td>189</td></tr>
+                            <tr><td>172.16.x.xxx</td><td>156</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <?php if (!empty($top_ips)): ?>
+                    <table class="widefat">
+                        <thead>
+                            <tr>
+                                <th><?php _e('IP Address', 'spamxpert'); ?></th>
+                                <th><?php _e('Attempts', 'spamxpert'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($top_ips as $ip): ?>
+                                <tr>
+                                    <td><?php echo esc_html($ip->ip_address); ?></td>
+                                    <td><?php echo number_format($ip->count); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <div class="spamxpert-empty-state">
+                        <p><?php _e('No spam attempts recorded yet.', 'spamxpert'); ?></p>
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
         
         <!-- Spam by Form Type -->
-        <div class="spamxpert-dashboard-panel">
-            <h2><?php _e('Spam by Form Type', 'spamxpert'); ?></h2>
-            <?php if (!empty($by_form)): ?>
-                <table class="widefat">
-                    <thead>
-                        <tr>
-                            <th><?php _e('Form Type', 'spamxpert'); ?></th>
-                            <th><?php _e('Blocked', 'spamxpert'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($by_form as $form): ?>
-                            <tr>
-                                <td><?php echo esc_html(str_replace('_', ' ', ucfirst($form->form_type))); ?></td>
-                                <td><?php echo number_format($form->count); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <div class="spamxpert-empty-state">
-                    <p><?php _e('No form submissions blocked yet.', 'spamxpert'); ?></p>
+        <div class="spamxpert-dashboard-panel <?php echo !spamxpert_is_pro() ? 'spamxpert-pro-feature' : ''; ?>">
+            <h2>
+                <?php _e('Spam by Form Type', 'spamxpert'); ?>
+                <?php if (!spamxpert_is_pro()): ?>
+                    <span class="spamxpert-pro-badge"><?php _e('PRO', 'spamxpert'); ?></span>
+                <?php endif; ?>
+            </h2>
+            
+            <?php if (!spamxpert_is_pro()): ?>
+                <div class="spamxpert-pro-overlay">
+                    <div class="spamxpert-pro-content">
+                        <span class="dashicons dashicons-forms"></span>
+                        <h3><?php _e('Form Analytics', 'spamxpert'); ?></h3>
+                        <p><?php _e('See which forms are targeted most and optimize your protection strategy with detailed form analytics.', 'spamxpert'); ?></p>
+                        <a href="<?php echo esc_url(spamxpert_get_upgrade_url('dashboard_forms')); ?>" class="button button-primary" target="_blank">
+                            <?php _e('Upgrade to Pro', 'spamxpert'); ?>
+                        </a>
+                    </div>
                 </div>
+                <div class="spamxpert-blurred-content">
+                    <table class="widefat">
+                        <thead>
+                            <tr>
+                                <th>Contact Form</th>
+                                <th>432</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Comments</td><td>298</td></tr>
+                            <tr><td>Registration</td><td>187</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <?php if (!empty($by_form)): ?>
+                    <table class="widefat">
+                        <thead>
+                            <tr>
+                                <th><?php _e('Form Type', 'spamxpert'); ?></th>
+                                <th><?php _e('Blocked', 'spamxpert'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($by_form as $form): ?>
+                                <tr>
+                                    <td><?php echo esc_html(str_replace('_', ' ', ucfirst($form->form_type))); ?></td>
+                                    <td><?php echo number_format($form->count); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <div class="spamxpert-empty-state">
+                        <p><?php _e('No form submissions blocked yet.', 'spamxpert'); ?></p>
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
         
         <!-- Spam by Reason -->
-        <div class="spamxpert-dashboard-panel">
-            <h2><?php _e('Spam Detection Methods', 'spamxpert'); ?></h2>
-            <?php if (!empty($by_reason)): ?>
-                <table class="widefat">
-                    <thead>
-                        <tr>
-                            <th><?php _e('Detection Method', 'spamxpert'); ?></th>
-                            <th><?php _e('Count', 'spamxpert'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($by_reason as $reason): ?>
-                            <tr>
-                                <td><?php echo esc_html(str_replace('_', ' ', ucfirst($reason->spam_reason))); ?></td>
-                                <td><?php echo number_format($reason->count); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <div class="spamxpert-empty-state">
-                    <p><?php _e('No detection data available yet.', 'spamxpert'); ?></p>
+        <div class="spamxpert-dashboard-panel <?php echo !spamxpert_is_pro() ? 'spamxpert-pro-feature' : ''; ?>">
+            <h2>
+                <?php _e('Spam Detection Methods', 'spamxpert'); ?>
+                <?php if (!spamxpert_is_pro()): ?>
+                    <span class="spamxpert-pro-badge"><?php _e('PRO', 'spamxpert'); ?></span>
+                <?php endif; ?>
+            </h2>
+            
+            <?php if (!spamxpert_is_pro()): ?>
+                <div class="spamxpert-pro-overlay">
+                    <div class="spamxpert-pro-content">
+                        <span class="dashicons dashicons-filter"></span>
+                        <h3><?php _e('Detection Analytics', 'spamxpert'); ?></h3>
+                        <p><?php _e('Analyze which detection methods are most effective and fine-tune your spam protection strategy.', 'spamxpert'); ?></p>
+                        <a href="<?php echo esc_url(spamxpert_get_upgrade_url('dashboard_detection')); ?>" class="button button-primary" target="_blank">
+                            <?php _e('Upgrade to Pro', 'spamxpert'); ?>
+                        </a>
+                    </div>
                 </div>
+                <div class="spamxpert-blurred-content">
+                    <table class="widefat">
+                        <thead>
+                            <tr>
+                                <th>Honeypot Triggered</th>
+                                <th>523</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Time Trap Failed</td><td>412</td></tr>
+                            <tr><td>IP Blacklisted</td><td>156</td></tr>
+                            <tr><td>Keyword Match</td><td>89</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <?php if (!empty($by_reason)): ?>
+                    <table class="widefat">
+                        <thead>
+                            <tr>
+                                <th><?php _e('Detection Method', 'spamxpert'); ?></th>
+                                <th><?php _e('Count', 'spamxpert'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($by_reason as $reason): ?>
+                                <tr>
+                                    <td><?php echo esc_html(str_replace('_', ' ', ucfirst($reason->spam_reason))); ?></td>
+                                    <td><?php echo number_format($reason->count); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <div class="spamxpert-empty-state">
+                        <p><?php _e('No detection data available yet.', 'spamxpert'); ?></p>
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
@@ -169,6 +269,19 @@ $by_reason = isset($stats['by_reason']) ? $stats['by_reason'] : array();
     </div>
     <?php endif; ?>
     
+    <!-- Free Version Notice -->
+    <?php if (!spamxpert_is_pro()): ?>
+    <div class="spamxpert-free-notice">
+        <p>
+            <span class="dashicons dashicons-info-outline"></span>
+            <?php _e('You\'re using SpamXpert Free. Basic spam logs and protection are fully functional.', 'spamxpert'); ?>
+            <a href="<?php echo esc_url(spamxpert_get_upgrade_url('dashboard_notice')); ?>" target="_blank">
+                <?php _e('Unlock advanced analytics with Pro', 'spamxpert'); ?> →
+            </a>
+        </p>
+    </div>
+    <?php endif; ?>
+    
     <!-- Quick Actions -->
     <div class="spamxpert-quick-actions">
         <h2><?php _e('Quick Actions', 'spamxpert'); ?></h2>
@@ -184,5 +297,11 @@ $by_reason = isset($stats['by_reason']) ? $stats['by_reason'] : array();
             <span class="dashicons dashicons-download" style="vertical-align: middle; margin-right: 5px;"></span>
             <?php _e('Export Logs', 'spamxpert'); ?>
         </a>
+        <?php if (!spamxpert_is_pro()): ?>
+        <a href="<?php echo esc_url(spamxpert_get_upgrade_url('dashboard_cta')); ?>" class="button" style="background: #ffd700; border-color: #ffd700; color: #1a1a1a; font-weight: 600;" target="_blank">
+            <span class="dashicons dashicons-star-filled" style="vertical-align: middle; margin-right: 5px;"></span>
+            <?php _e('Upgrade to Pro', 'spamxpert'); ?>
+        </a>
+        <?php endif; ?>
     </div>
 </div> 

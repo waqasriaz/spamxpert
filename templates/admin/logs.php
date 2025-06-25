@@ -29,6 +29,19 @@ $current_page = isset($filters['page']) ? $filters['page'] : 1;
         <?php endif; ?>
     </h1>
     
+    <?php if (!spamxpert_is_pro()): ?>
+    <div class="spamxpert-free-notice" style="margin-top: 20px;">
+        <p>
+            <span class="dashicons dashicons-star-empty"></span>
+            <strong><?php _e('Pro Tip:', 'spamxpert'); ?></strong>
+            <?php _e('Upgrade to Pro for advanced analytics, IP reputation checking, geo-blocking, and real-time threat intelligence.', 'spamxpert'); ?>
+            <a href="<?php echo esc_url(spamxpert_get_upgrade_url('logs_notice')); ?>" target="_blank">
+                <?php _e('Learn more', 'spamxpert'); ?> →
+            </a>
+        </p>
+    </div>
+    <?php endif; ?>
+    
     <!-- Filters -->
     <div class="tablenav top">
         <form method="get" action="">

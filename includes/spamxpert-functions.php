@@ -78,6 +78,43 @@ function spamxpert_is_enabled() {
 }
 
 /**
+ * Check if SpamXpert Pro is active
+ *
+ * @return bool
+ */
+function spamxpert_is_pro() {
+    // Check if Pro plugin is active
+    if (defined('SPAMXPERT_PRO_VERSION')) {
+        return true;
+    }
+    
+    // Check if Pro license is valid
+    $license = get_option('spamxpert_pro_license_status');
+    if ($license === 'valid') {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Get upgrade URL
+ *
+ * @param string $source Where the upgrade link is placed
+ * @return string
+ */
+function spamxpert_get_upgrade_url($source = 'plugin') {
+    $base_url = 'https://spamxpert.com/pro';
+    $utm_params = array(
+        'utm_source' => 'plugin',
+        'utm_medium' => $source,
+        'utm_campaign' => 'upgrade'
+    );
+    
+    return add_query_arg($utm_params, $base_url);
+}
+
+/**
  * Check if form type protection is enabled
  *
  * @param string $form_type Form type
