@@ -16,20 +16,42 @@ if (!defined('ABSPATH')) {
  *
  * Handles WordPress comments form protection
  */
-class SpamXpert_Integration_WP_Comments {
+class SpamXpert_Integration_WP_Comments extends SpamXpert_Integration_Base {
+
+    /**
+     * Integration name
+     * @var string
+     */
+    protected $name = 'WordPress Comments Form';
+    
+    /**
+     * Integration slug
+     * @var string
+     */
+    protected $slug = 'wp_comments';
+
+    /**
+     * Check if the integration is available
+     *
+     * @return bool
+     */
+    public function is_available() {
+        // Comments form is available if comments are open globally
+        return get_option('default_comment_status') === 'open';
+    }
 
     /**
      * Initialize the integration
      */
-    public function init() {
+    protected function init() {
         // Add honeypot fields to comment form
-        add_action('comment_form', array($this, 'add_honeypot_fields'));
+        add_action('comment_form', array($this, 'output_honeypot_fields'));
         
         // For themes that use comment_form_after_fields
-        add_action('comment_form_after_fields', array($this, 'add_honeypot_fields_after'));
+        add_action('comment_form_after_fields', array($this, 'output_honeypot_fields_after'));
         
         // For logged in users (they don't see the fields section)
-        add_action('comment_form_logged_in_after', array($this, 'add_honeypot_fields_logged_in'));
+        add_action('comment_form_logged_in_after', array($this, 'output_honeypot_fields_logged_in'));
         
         // Validate comment submission
         add_filter('preprocess_comment', array($this, 'validate_comment'), 1);
@@ -39,9 +61,9 @@ class SpamXpert_Integration_WP_Comments {
     }
 
     /**
-     * Add honeypot fields to comment form
+     * Output honeypot fields to comment form
      */
-    public function add_honeypot_fields() {
+    public function output_honeypot_fields() {
         // Only add once
         static $added = false;
         if ($added) {
@@ -56,28 +78,23 @@ class SpamXpert_Integration_WP_Comments {
     }
 
     /**
-     * Add honeypot fields after form fields
+     * Output honeypot fields after form fields
      */
-    public function add_honeypot_fields_after() {
-        $this->add_honeypot_fields();
+    public function output_honeypot_fields_after() {
+        $this->output_honeypot_fields();
     }
 
     /**
-     * Add honeypot fields for logged in users
+     * Output honeypot fields for logged in users
      */
-    public function add_honeypot_fields_logged_in() {
-        $this->add_honeypot_fields();
+    public function output_honeypot_fields_logged_in() {
+        $this->output_honeypot_fields();
     }
 
     /**
      * Validate comment submission early
      */
     public function validate_comment_early() {
-        // Skip if plugin is disabled
-        if (!spamxpert_is_enabled()) {
-            return;
-        }
-        
         // Get validator
         $validator = SpamXpert::get_instance()->get_module('validator');
         if (!$validator) {
@@ -85,21 +102,11 @@ class SpamXpert_Integration_WP_Comments {
         }
         
         // Validate the form submission
-        $validation_result = $validator->validate_submission($_POST, 'wp_comments');
+        $validation_result = $validator->validate_submission($_POST, $this->slug);
         
         if ($validation_result !== true) {
-            // Log the spam attempt
-            spamxpert_log_spam(array(
-                'form_type' => 'wp_comments',
-                'reason' => 'validation_failed',
-                'form_data' => array(
-                    'author' => isset($_POST['author']) ? $_POST['author'] : '',
-                    'email' => isset($_POST['email']) ? $_POST['email'] : '',
-                    'comment' => isset($_POST['comment']) ? substr($_POST['comment'], 0, 100) : '',
-                    'post_id' => isset($_POST['comment_post_ID']) ? $_POST['comment_post_ID'] : '',
-                    'ip' => spamxpert_get_user_ip()
-                )
-            ));
+            // Module already logged the spam attempt with proper details
+            // No need to log again at integration level
             
             // Stop processing and show error
             wp_die(
@@ -119,11 +126,6 @@ class SpamXpert_Integration_WP_Comments {
     public function validate_comment($commentdata) {
         // Skip for trackbacks and pingbacks
         if (!empty($commentdata['comment_type']) && $commentdata['comment_type'] !== 'comment') {
-            return $commentdata;
-        }
-        
-        // Skip if plugin is disabled
-        if (!spamxpert_is_enabled()) {
             return $commentdata;
         }
         

@@ -176,8 +176,17 @@ class SpamXpert_Admin {
             );
             $log->ip_address = $ips[array_rand($ips)];
             
-            // Random reasons
-            $reasons = array('honeypot_field', 'time_trap', 'multiple_attempts', 'blacklisted_ip');
+            // Random reasons (mix of free and pro detection methods)
+            $reasons = array(
+                'honeypot_field', 
+                'time_trap', 
+                'ai_spam_score',
+                'ip_reputation',
+                'behavioral_analysis',
+                'geo_blocking',
+                'rate_limiting',
+                'keyword_match'
+            );
             $log->spam_reason = $reasons[array_rand($reasons)];
             
             // Random score

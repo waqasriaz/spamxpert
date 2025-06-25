@@ -16,17 +16,39 @@ if (!defined('ABSPATH')) {
  *
  * Handles WordPress registration form protection
  */
-class SpamXpert_Integration_WP_Registration {
+class SpamXpert_Integration_WP_Registration extends SpamXpert_Integration_Base {
+
+    /**
+     * Integration name
+     * @var string
+     */
+    protected $name = 'WordPress Registration Form';
+    
+    /**
+     * Integration slug
+     * @var string
+     */
+    protected $slug = 'wp_registration';
+
+    /**
+     * Check if the integration is available
+     *
+     * @return bool
+     */
+    public function is_available() {
+        // Registration form is available if registrations are open
+        return get_option('users_can_register') || is_multisite();
+    }
 
     /**
      * Initialize the integration
      */
-    public function init() {
+    protected function init() {
         // Add honeypot fields to registration form
-        add_action('register_form', array($this, 'add_honeypot_fields'));
+        add_action('register_form', array($this, 'output_honeypot_fields'));
         
         // Also support multisite signup form
-        add_action('signup_extra_fields', array($this, 'add_honeypot_fields'));
+        add_action('signup_extra_fields', array($this, 'output_honeypot_fields'));
         
         // Validate registration
         add_filter('registration_errors', array($this, 'validate_registration'), 10, 3);
@@ -37,9 +59,9 @@ class SpamXpert_Integration_WP_Registration {
     }
 
     /**
-     * Add honeypot fields to registration form
+     * Output honeypot fields to registration form
      */
-    public function add_honeypot_fields() {
+    public function output_honeypot_fields() {
         $honeypot = SpamXpert::get_instance()->get_module('honeypot');
         if ($honeypot) {
             echo $honeypot->render_fields('wp_registration');
@@ -55,11 +77,6 @@ class SpamXpert_Integration_WP_Registration {
      * @return WP_Error
      */
     public function validate_registration($errors, $sanitized_user_login, $user_email) {
-        // Skip if plugin is disabled
-        if (!spamxpert_is_enabled()) {
-            return $errors;
-        }
-        
         // Get validator
         $validator = SpamXpert::get_instance()->get_module('validator');
         if (!$validator) {
@@ -67,19 +84,11 @@ class SpamXpert_Integration_WP_Registration {
         }
         
         // Validate the form submission
-        $validation_result = $validator->validate_submission($_POST, 'wp_registration');
+        $validation_result = $validator->validate_submission($_POST, $this->slug);
         
         if ($validation_result !== true) {
-            // Log the spam attempt
-            spamxpert_log_spam(array(
-                'form_type' => 'wp_registration',
-                'reason' => 'validation_failed',
-                'form_data' => array(
-                    'username' => $sanitized_user_login,
-                    'email' => $user_email,
-                    'ip' => spamxpert_get_user_ip()
-                )
-            ));
+            // Module already logged the spam attempt with proper details
+            // No need to log again at integration level
             
             // Add error
             $errors->add(
@@ -98,11 +107,6 @@ class SpamXpert_Integration_WP_Registration {
      * @return array
      */
     public function validate_multisite_signup($result) {
-        // Skip if plugin is disabled
-        if (!spamxpert_is_enabled()) {
-            return $result;
-        }
-        
         // Get validator
         $validator = SpamXpert::get_instance()->get_module('validator');
         if (!$validator) {
@@ -110,19 +114,11 @@ class SpamXpert_Integration_WP_Registration {
         }
         
         // Validate the form submission
-        $validation_result = $validator->validate_submission($_POST, 'wp_registration');
+        $validation_result = $validator->validate_submission($_POST, $this->slug);
         
         if ($validation_result !== true) {
-            // Log the spam attempt
-            spamxpert_log_spam(array(
-                'form_type' => 'wp_registration_multisite',
-                'reason' => 'validation_failed',
-                'form_data' => array(
-                    'username' => isset($result['user_name']) ? $result['user_name'] : '',
-                    'email' => isset($result['user_email']) ? $result['user_email'] : '',
-                    'ip' => spamxpert_get_user_ip()
-                )
-            ));
+            // Module already logged the spam attempt with proper details
+            // No need to log again at integration level
             
             // Add error
             $result['errors']->add(

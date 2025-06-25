@@ -44,13 +44,23 @@ class SpamXpert_Validator {
         
         // Validate nonce
         $nonce_field = 'spamxpert_nonce';
-        if (!isset($form_data[$nonce_field]) || !wp_verify_nonce($form_data[$nonce_field], 'spamxpert_form_' . $form_type)) {
-            spamxpert_log_spam(array(
-                'form_type' => $form_type,
-                'reason' => 'invalid_nonce',
-                'score' => 100
-            ));
-            return __('Security check failed. Please refresh the page and try again.', 'spamxpert');
+        
+        // Skip nonce validation for forms that have their own nonce protection
+        $skip_nonce_forms = apply_filters('spamxpert_skip_nonce_validation', array(
+            'houzez_agent_contact',
+            'houzez_schedule_tour', 
+            'houzez_inquiry'
+        ));
+        
+        if (!in_array($form_type, $skip_nonce_forms)) {
+            if (!isset($form_data[$nonce_field]) || !wp_verify_nonce($form_data[$nonce_field], 'spamxpert_form_' . $form_type)) {
+                spamxpert_log_spam(array(
+                    'form_type' => $form_type,
+                    'reason' => 'invalid_nonce',
+                    'score' => 100
+                ));
+                return __('Security check failed. Please refresh the page and try again.', 'spamxpert');
+            }
         }
         
         // Validate honeypot fields

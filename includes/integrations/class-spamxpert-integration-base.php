@@ -127,13 +127,20 @@ abstract class SpamXpert_Integration_Base {
     /**
      * Log spam attempt
      * 
-     * @param string $reason Spam reason
+     * @deprecated Integrations should not log spam attempts. Core modules handle all logging.
+     * 
+     * @param string $reason Spam reason or error message
      * @param int $score Spam score
+     * @param array $form_data Optional form data
      */
-    protected function log_spam($reason, $score = 100) {
-        $logger = SpamXpert::get_instance()->get_module('logger');
-        if ($logger && get_option('spamxpert_log_spam', '1') === '1') {
-            $logger->log($this->slug, $reason, $score);
+    protected function log_spam($reason, $score = 100, $form_data = array()) {
+        if (get_option('spamxpert_log_spam', '1') === '1') {
+            spamxpert_log_spam(array(
+                'form_type' => $this->slug,
+                'reason' => $reason,
+                'score' => $score,
+                'form_data' => $form_data
+            ));
         }
     }
 } 

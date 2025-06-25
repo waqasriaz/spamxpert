@@ -97,8 +97,8 @@ class SpamXpert_Integration_CF7 extends SpamXpert_Integration_Base {
         if (is_wp_error($validation)) {
             $result->invalidate('', $validation->get_error_message());
             
-            // Log spam attempt
-            $this->log_spam($validation->get_error_message());
+            // Module already logged the spam attempt with proper details
+            // No need to log again at integration level
             
             // Developer hook for spam detection
             do_action('spamxpert_cf7_spam_detected', $posted_data, $validation);

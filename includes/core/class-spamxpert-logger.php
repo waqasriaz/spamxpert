@@ -37,6 +37,40 @@ class SpamXpert_Logger {
     }
 
     /**
+     * Log a spam attempt
+     *
+     * @param string $form_type Form type
+     * @param string $reason Spam reason
+     * @param int $score Spam score
+     * @param array $form_data Optional form data
+     * @return bool
+     */
+    public function log($form_type, $reason, $score = 100, $form_data = array()) {
+        if (get_option('spamxpert_log_spam', '1') !== '1') {
+            return false;
+        }
+        
+        global $wpdb;
+        
+        $result = $wpdb->insert(
+            $this->table_name,
+            array(
+                'form_type' => sanitize_text_field($form_type),
+                'form_id' => isset($form_data['form_id']) ? sanitize_text_field($form_data['form_id']) : null,
+                'ip_address' => spamxpert_get_user_ip(),
+                'user_agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : '',
+                'spam_reason' => sanitize_text_field($reason),
+                'spam_score' => intval($score),
+                'form_data' => !empty($form_data) ? wp_json_encode($form_data) : null,
+                'blocked_at' => current_time('mysql')
+            ),
+            array('%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s')
+        );
+        
+        return $result !== false;
+    }
+
+    /**
      * Get logs with pagination
      *
      * @param array $args Query arguments

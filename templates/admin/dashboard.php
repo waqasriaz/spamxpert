@@ -21,7 +21,27 @@ $by_reason = isset($stats['by_reason']) ? $stats['by_reason'] : array();
 ?>
 
 <div class="wrap" id="spamxpert-dashboard">
-    <h1><?php echo esc_html__('SpamXpert Dashboard', 'spamxpert'); ?></h1>
+    <div class="spamxpert-dashboard-header">
+        <h1><?php echo esc_html__('SpamXpert Dashboard', 'spamxpert'); ?></h1>
+        
+        <!-- Quick Actions -->
+        <div class="spamxpert-quick-actions">
+            <a href="<?php echo admin_url('admin.php?page=spamxpert-settings'); ?>" class="button button-primary">
+                <span class="dashicons dashicons-admin-settings"></span>
+                <?php _e('Settings', 'spamxpert'); ?>
+            </a>
+            <a href="<?php echo admin_url('admin.php?page=spamxpert-logs'); ?>" class="button">
+                <span class="dashicons dashicons-list-view"></span>
+                <?php _e('View Logs', 'spamxpert'); ?>
+            </a>
+            <?php if (!spamxpert_is_pro()): ?>
+            <a href="<?php echo esc_url(spamxpert_get_upgrade_url('dashboard_cta')); ?>" class="button spamxpert-pro-button" target="_blank">
+                <span class="dashicons dashicons-star-filled"></span>
+                <?php _e('Upgrade to Pro', 'spamxpert'); ?>
+            </a>
+            <?php endif; ?>
+        </div>
+    </div>
     
     <!-- Status Cards -->
     <div class="spamxpert-dashboard-cards">
@@ -199,7 +219,7 @@ $by_reason = isset($stats['by_reason']) ? $stats['by_reason'] : array();
                     <div class="spamxpert-pro-content">
                         <span class="dashicons dashicons-filter"></span>
                         <h3><?php _e('Detection Analytics', 'spamxpert'); ?></h3>
-                        <p><?php _e('Analyze which detection methods are most effective and fine-tune your spam protection strategy.', 'spamxpert'); ?></p>
+                        <p><?php _e('Track success rates, fine-tune thresholds, and optimize detection methods with advanced analytics and controls.', 'spamxpert'); ?></p>
                         <a href="<?php echo esc_url(spamxpert_get_upgrade_url('dashboard_detection')); ?>" class="button button-primary" target="_blank">
                             <?php _e('Upgrade to Pro', 'spamxpert'); ?>
                         </a>
@@ -215,8 +235,11 @@ $by_reason = isset($stats['by_reason']) ? $stats['by_reason'] : array();
                         </thead>
                         <tbody>
                             <tr><td>Time Trap Failed</td><td>412</td></tr>
-                            <tr><td>IP Blacklisted</td><td>156</td></tr>
-                            <tr><td>Keyword Match</td><td>89</td></tr>
+                            <tr><td>AI Spam Score</td><td>287</td></tr>
+                            <tr><td>IP Reputation</td><td>156</td></tr>
+                            <tr><td>Behavioral Analysis</td><td>134</td></tr>
+                            <tr><td>Geo-blocking</td><td>89</td></tr>
+                            <tr><td>Rate Limiting</td><td>67</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -282,26 +305,5 @@ $by_reason = isset($stats['by_reason']) ? $stats['by_reason'] : array();
     </div>
     <?php endif; ?>
     
-    <!-- Quick Actions -->
-    <div class="spamxpert-quick-actions">
-        <h2><?php _e('Quick Actions', 'spamxpert'); ?></h2>
-        <a href="<?php echo admin_url('admin.php?page=spamxpert-settings'); ?>" class="button button-primary">
-            <span class="dashicons dashicons-admin-settings" style="vertical-align: middle; margin-right: 5px;"></span>
-            <?php _e('Configure Settings', 'spamxpert'); ?>
-        </a>
-        <a href="<?php echo admin_url('admin.php?page=spamxpert-logs'); ?>" class="button">
-            <span class="dashicons dashicons-list-view" style="vertical-align: middle; margin-right: 5px;"></span>
-            <?php _e('View Spam Logs', 'spamxpert'); ?>
-        </a>
-        <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=spamxpert-logs&action=export'), 'spamxpert_export_logs'); ?>" class="button">
-            <span class="dashicons dashicons-download" style="vertical-align: middle; margin-right: 5px;"></span>
-            <?php _e('Export Logs', 'spamxpert'); ?>
-        </a>
-        <?php if (!spamxpert_is_pro()): ?>
-        <a href="<?php echo esc_url(spamxpert_get_upgrade_url('dashboard_cta')); ?>" class="button" style="background: #ffd700; border-color: #ffd700; color: #1a1a1a; font-weight: 600;" target="_blank">
-            <span class="dashicons dashicons-star-filled" style="vertical-align: middle; margin-right: 5px;"></span>
-            <?php _e('Upgrade to Pro', 'spamxpert'); ?>
-        </a>
-        <?php endif; ?>
-    </div>
+
 </div> 

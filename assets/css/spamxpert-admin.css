@@ -39,6 +39,53 @@
     margin-bottom: 25px;
 }
 
+/* Dashboard Header */
+.spamxpert-dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.spamxpert-dashboard-header h1 {
+    margin: 0;
+}
+
+/* Quick Actions in Header */
+.spamxpert-dashboard-header .spamxpert-quick-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.spamxpert-dashboard-header .spamxpert-quick-actions .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.spamxpert-dashboard-header .spamxpert-quick-actions .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+.spamxpert-dashboard-header .spamxpert-pro-button {
+    background: #fbbf24;
+    border-color: #fbbf24;
+    color: #451a03;
+    font-weight: 600;
+}
+
+.spamxpert-dashboard-header .spamxpert-pro-button:hover {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    color: #451a03;
+}
+
 /* Dashboard Styles */
 .spamxpert-dashboard-cards {
     display: grid;
@@ -198,25 +245,6 @@
 
 .spamxpert-pro-feature .spamxpert-blurred-content tr:last-child td {
     border-bottom: none;
-}
-
-/* Quick Actions */
-.spamxpert-quick-actions {
-    margin-top: 40px;
-    padding: 25px;
-    background: var(--spamxpert-light);
-    border-radius: 8px;
-}
-
-.spamxpert-quick-actions h2 {
-    margin: 0 0 15px 0;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.spamxpert-quick-actions .button {
-    margin-right: 10px;
-    margin-bottom: 10px;
 }
 
 /* Settings Page Styles */
@@ -590,6 +618,24 @@
     .spamxpert-pro-content .button {
         font-size: 13px;
         padding: 6px 20px;
+    }
+
+    /* Dashboard header mobile */
+    .spamxpert-dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .spamxpert-dashboard-header .spamxpert-quick-actions {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .spamxpert-dashboard-header .spamxpert-quick-actions .button {
+        flex: 1;
+        min-width: 120px;
+        justify-content: center;
     }
 }
 

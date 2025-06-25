@@ -135,27 +135,15 @@ function spamxpert_is_form_protected($form_type) {
  * @param array $data Log data
  */
 function spamxpert_log_spam($data) {
-    if (get_option('spamxpert_log_spam', '1') !== '1') {
-        return;
+    $logger = SpamXpert::get_instance()->get_module('logger');
+    if ($logger) {
+        $logger->log(
+            $data['form_type'],
+            $data['reason'],
+            isset($data['score']) ? $data['score'] : 100,
+            isset($data['form_data']) ? $data['form_data'] : array()
+        );
     }
-    
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'spamxpert_logs';
-    
-    $wpdb->insert(
-        $table_name,
-        array(
-            'form_type' => sanitize_text_field($data['form_type']),
-            'form_id' => isset($data['form_id']) ? sanitize_text_field($data['form_id']) : null,
-            'ip_address' => spamxpert_get_user_ip(),
-            'user_agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : '',
-            'spam_reason' => sanitize_text_field($data['reason']),
-            'spam_score' => isset($data['score']) ? intval($data['score']) : 0,
-            'form_data' => isset($data['form_data']) ? wp_json_encode($data['form_data']) : null,
-            'blocked_at' => current_time('mysql')
-        ),
-        array('%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s')
-    );
 }
 
 /**

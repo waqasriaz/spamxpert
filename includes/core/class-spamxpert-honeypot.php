@@ -31,6 +31,15 @@ class SpamXpert_Honeypot {
     public function init() {
         // Hook into init to start session properly
         add_action('init', array($this, 'start_session'), 1);
+        
+        // Also start session for AJAX requests
+        add_action('admin_init', array($this, 'start_session'), 1);
+        add_action('wp_ajax_houzez_property_agent_contact', array($this, 'start_session'), 0);
+        add_action('wp_ajax_nopriv_houzez_property_agent_contact', array($this, 'start_session'), 0);
+        add_action('wp_ajax_houzez_schedule_send_message', array($this, 'start_session'), 0);
+        add_action('wp_ajax_nopriv_houzez_schedule_send_message', array($this, 'start_session'), 0);
+        add_action('wp_ajax_houzez_ele_inquiry_form', array($this, 'start_session'), 0);
+        add_action('wp_ajax_nopriv_houzez_ele_inquiry_form', array($this, 'start_session'), 0);
     }
 
     /**
@@ -67,6 +76,9 @@ class SpamXpert_Honeypot {
         // Store fields in session for validation
         $session_key = $this->get_session_key($form_id);
         $_SESSION[$session_key] = $fields;
+        
+        // Allow debugging
+        $fields = apply_filters('spamxpert_honeypot_fields_generated', $fields, $form_id);
         
         return $fields;
     }
@@ -108,8 +120,17 @@ class SpamXpert_Honeypot {
         // Add time field
         $html .= $this->render_time_field($form_id);
         
-        // Add nonce field
-        $html .= wp_nonce_field('spamxpert_form_' . $form_id, 'spamxpert_nonce', true, false);
+        // Skip nonce field for forms that have their own nonce protection
+        $skip_nonce_forms = apply_filters('spamxpert_skip_nonce_generation', array(
+            'houzez_agent_contact',
+            'houzez_schedule_tour',
+            'houzez_inquiry'
+        ));
+        
+        if (!in_array($form_id, $skip_nonce_forms)) {
+            // Add nonce field
+            $html .= wp_nonce_field('spamxpert_form_' . $form_id, 'spamxpert_nonce', true, false);
+        }
         
         return $html;
     }
@@ -139,29 +160,54 @@ class SpamXpert_Honeypot {
      */
     public function validate($form_data, $form_id = '') {
         $session_key = $this->get_session_key($form_id);
+        $honeypot_fields = array();
         
         // Check if honeypot fields exist in session
-        if (!isset($_SESSION[$session_key])) {
-            return __('Session expired. Please refresh the page and try again.', 'spamxpert');
+        if (isset($_SESSION[$session_key])) {
+            $honeypot_fields = $_SESSION[$session_key];
+            
+            // Check each honeypot field from session
+            foreach ($honeypot_fields as $field) {
+                if (isset($form_data[$field['name']]) && !empty($form_data[$field['name']])) {
+                    // Honeypot field was filled - it's spam!
+                    spamxpert_log_spam(array(
+                        'form_type' => $form_id,
+                        'reason' => 'honeypot_filled',
+                        'form_data' => $form_data
+                    ));
+                    return __('Spam detected: Invalid form submission.', 'spamxpert');
+                }
+            }
+            
+            // Clear session data
+            unset($_SESSION[$session_key]);
         }
         
-        $honeypot_fields = $_SESSION[$session_key];
+        // Also check for any honeypot-pattern fields in the submitted data
+        // This handles cases where session might be lost (cached forms, CDN, etc.)
+        $honeypot_pattern = apply_filters(
+            'spamxpert_honeypot_field_pattern',
+            '/^(email|name|phone|website|url|company|address|message)_\w{4}_(hp|check|verify|confirm|validate|field)$/',
+            $form_id
+        );
+        $suspicious_fields = array();
         
-        // Check each honeypot field
-        foreach ($honeypot_fields as $field) {
-            if (isset($form_data[$field['name']]) && !empty($form_data[$field['name']])) {
-                // Honeypot field was filled - it's spam!
-                spamxpert_log_spam(array(
-                    'form_type' => $form_id,
-                    'reason' => 'honeypot_filled',
-                    'form_data' => $form_data
-                ));
-                return __('Spam detected: Invalid form submission.', 'spamxpert');
+        foreach ($form_data as $key => $value) {
+            if (preg_match($honeypot_pattern, $key) && !empty($value)) {
+                $suspicious_fields[$key] = $value;
             }
         }
         
-        // Clear session data
-        unset($_SESSION[$session_key]);
+        if (!empty($suspicious_fields)) {
+            // Found filled honeypot fields - it's spam!
+            spamxpert_log_spam(array(
+                'form_type' => $form_id,
+                'reason' => 'honeypot_filled',
+                'form_data' => $form_data,
+                'filled_honeypots' => $suspicious_fields
+            ));
+            return __('Spam detected: Invalid form submission.', 'spamxpert');
+        }
         
         return true;
     }

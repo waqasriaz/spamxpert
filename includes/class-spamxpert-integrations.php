@@ -35,12 +35,8 @@ class SpamXpert_Integrations {
         // Load third-party integrations
         $this->load_third_party_integrations();
         
-        // Initialize all active integrations
-        foreach ($this->integrations as $integration) {
-            if (method_exists($integration, 'init')) {
-                $integration->init();
-            }
-        }
+        // Note: Integrations that extend SpamXpert_Integration_Base are automatically
+        // initialized by their constructor, so we don't need to manually call init()
     }
 
     /**
@@ -48,30 +44,32 @@ class SpamXpert_Integrations {
      */
     private function load_core_integrations() {
         // Login form integration
-        if (spamxpert_is_form_protected('wp_login')) {
-            require_once SPAMXPERT_PLUGIN_DIR . 'includes/integrations/class-spamxpert-integration-wp-login.php';
-            $this->integrations['wp_login'] = new SpamXpert_Integration_WP_Login();
-        }
+        require_once SPAMXPERT_PLUGIN_DIR . 'includes/integrations/class-spamxpert-integration-wp-login.php';
+        $this->integrations['wp_login'] = new SpamXpert_Integration_WP_Login();
         
         // Registration form integration
-        if (spamxpert_is_form_protected('wp_registration')) {
-            require_once SPAMXPERT_PLUGIN_DIR . 'includes/integrations/class-spamxpert-integration-wp-registration.php';
-            $this->integrations['wp_registration'] = new SpamXpert_Integration_WP_Registration();
-        }
+        require_once SPAMXPERT_PLUGIN_DIR . 'includes/integrations/class-spamxpert-integration-wp-registration.php';
+        $this->integrations['wp_registration'] = new SpamXpert_Integration_WP_Registration();
         
         // Comments form integration
-        if (spamxpert_is_form_protected('wp_comments')) {
-            require_once SPAMXPERT_PLUGIN_DIR . 'includes/integrations/class-spamxpert-integration-wp-comments.php';
-            $this->integrations['wp_comments'] = new SpamXpert_Integration_WP_Comments();
-        }
+        require_once SPAMXPERT_PLUGIN_DIR . 'includes/integrations/class-spamxpert-integration-wp-comments.php';
+        $this->integrations['wp_comments'] = new SpamXpert_Integration_WP_Comments();
     }
 
     /**
      * Load third-party integrations
      */
     private function load_third_party_integrations() {
-        // This will be expanded later for Contact Form 7, Gravity Forms, etc.
-        // For now, we're focusing on WordPress core forms
+        // Contact Form 7 integration
+        if (class_exists('WPCF7')) {
+            require_once SPAMXPERT_PLUGIN_DIR . 'includes/integrations/class-spamxpert-integration-cf7.php';
+            $this->integrations['cf7'] = new SpamXpert_Integration_CF7();
+        }
+        
+        // Houzez theme integration
+        // The integration class will check if Houzez is active
+        require_once SPAMXPERT_PLUGIN_DIR . 'includes/integrations/class-spamxpert-integration-houzez.php';
+        $this->integrations['houzez'] = new SpamXpert_Integration_Houzez();
     }
 
     /**

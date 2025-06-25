@@ -16,14 +16,36 @@ if (!defined('ABSPATH')) {
  *
  * Handles WordPress login form protection
  */
-class SpamXpert_Integration_WP_Login {
+class SpamXpert_Integration_WP_Login extends SpamXpert_Integration_Base {
+
+    /**
+     * Integration name
+     * @var string
+     */
+    protected $name = 'WordPress Login Form';
+    
+    /**
+     * Integration slug
+     * @var string
+     */
+    protected $slug = 'wp_login';
+
+    /**
+     * Check if the integration is available
+     *
+     * @return bool
+     */
+    public function is_available() {
+        // WordPress login form is always available
+        return true;
+    }
 
     /**
      * Initialize the integration
      */
-    public function init() {
+    protected function init() {
         // Add honeypot fields to login form
-        add_action('login_form', array($this, 'add_honeypot_fields'), 99);
+        add_action('login_form', array($this, 'output_honeypot_fields'), 99);
         
         // Validate login form submission
         add_filter('authenticate', array($this, 'validate_login'), 30, 3);
@@ -33,9 +55,9 @@ class SpamXpert_Integration_WP_Login {
     }
 
     /**
-     * Add honeypot fields to login form
+     * Output honeypot fields to login form
      */
-    public function add_honeypot_fields() {
+    public function output_honeypot_fields() {
         $honeypot = SpamXpert::get_instance()->get_module('honeypot');
         if ($honeypot) {
             echo $honeypot->render_fields('wp_login');
@@ -56,11 +78,6 @@ class SpamXpert_Integration_WP_Login {
             return $user;
         }
         
-        // Skip validation for admin users or if plugin is disabled
-        if (!spamxpert_is_enabled()) {
-            return $user;
-        }
-        
         // Get validator
         $validator = SpamXpert::get_instance()->get_module('validator');
         if (!$validator) {
@@ -68,18 +85,11 @@ class SpamXpert_Integration_WP_Login {
         }
         
         // Validate the form submission
-        $validation_result = $validator->validate_submission($_POST, 'wp_login');
+        $validation_result = $validator->validate_submission($_POST, $this->slug);
         
         if ($validation_result !== true) {
-            // Log the failed attempt
-            spamxpert_log_spam(array(
-                'form_type' => 'wp_login',
-                'reason' => 'validation_failed',
-                'form_data' => array(
-                    'username' => $username,
-                    'ip' => spamxpert_get_user_ip()
-                )
-            ));
+            // Module already logged the spam attempt with proper details
+            // No need to log again at integration level
             
             // Return generic error to avoid giving away information
             return new WP_Error(
