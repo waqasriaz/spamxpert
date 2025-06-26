@@ -59,7 +59,8 @@ class SpamXpert_Validator {
             'houzez_realtor_contact',
             'houzez_agent_contact',
             'elementor_forms',
-            'elementor_login'
+            'elementor_login',
+            'cf7' // Contact Form 7 has its own nonce system
         ));
         
         if (!in_array($form_type, $skip_nonce_forms)) {

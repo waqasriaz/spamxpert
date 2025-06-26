@@ -61,13 +61,25 @@ class SpamXpert_Integration_CF7 extends SpamXpert_Integration_Base {
             return $form;
         }
         
-        // Add honeypot fields
-        $form = $this->add_honeypot_fields($form);
+        // Get honeypot module
+        $honeypot = SpamXpert::get_instance()->get_module('honeypot');
+        if (!$honeypot) {
+            return $form;
+        }
         
-        // Add time trap
-        $form = $this->add_time_trap($form);
+        // Get the form ID if available
+        $form_id = 'cf7';
+        if (preg_match('/id="(wpcf7-f\d+-[^"]+)"/', $form, $matches)) {
+            $form_id = $matches[1];
+        }
         
-        return $form;
+        // Add honeypot fields (includes time trap field)
+        $fields = $honeypot->render_fields($form_id);
+        
+        // Allow developers to modify fields
+        $fields = apply_filters('spamxpert_cf7_honeypot_fields', $fields, $form);
+        
+        return $form . $fields;
     }
     
     /**
@@ -91,11 +103,22 @@ class SpamXpert_Integration_CF7 extends SpamXpert_Integration_Base {
         
         $posted_data = $submission->get_posted_data();
         
-        // Validate submission
-        $validation = $this->validate_submission($posted_data);
+        // Get validator module
+        $validator = SpamXpert::get_instance()->get_module('validator');
+        if (!$validator) {
+            return $result;
+        }
         
-        if (is_wp_error($validation)) {
-            $result->invalidate('', $validation->get_error_message());
+        // Allow developers to modify validation data
+        $posted_data = apply_filters('spamxpert_cf7_validation_data', $posted_data);
+        
+        // Validate submission
+        $validation = $validator->validate_submission($posted_data, 'cf7');
+        
+        if ($validation !== true) {
+            // String error returned - spam detected
+            $error_message = is_string($validation) ? $validation : __('Spam detected.', 'spamxpert');
+            $result->invalidate('', $error_message);
             
             // Module already logged the spam attempt with proper details
             // No need to log again at integration level
@@ -104,6 +127,7 @@ class SpamXpert_Integration_CF7 extends SpamXpert_Integration_Base {
             do_action('spamxpert_cf7_spam_detected', $posted_data, $validation);
         }
         
-        return $result;
+        // Allow developers to override validation result
+        return apply_filters('spamxpert_cf7_validation_result', $result, $posted_data);
     }
 } 

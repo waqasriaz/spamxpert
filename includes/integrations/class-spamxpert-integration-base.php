@@ -67,40 +67,27 @@ abstract class SpamXpert_Integration_Base {
      * Add honeypot fields to form
      * 
      * @param string $form_html Form HTML
+     * @param string $form_id Optional form ID
      * @return string Modified form HTML
      */
-    protected function add_honeypot_fields($form_html) {
+    protected function add_honeypot_fields($form_html, $form_id = '') {
         $honeypot = SpamXpert::get_instance()->get_module('honeypot');
         if (!$honeypot) {
             return $form_html;
         }
         
-        $fields = $honeypot->generate_fields();
+        // Use the form type slug as form_id if not provided
+        if (empty($form_id)) {
+            $form_id = $this->slug;
+        }
+        
+        // render_fields already includes honeypot fields AND time field
+        $fields = $honeypot->render_fields($form_id);
         
         // Allow developers to modify honeypot fields for this integration
         $fields = apply_filters('spamxpert_' . $this->slug . '_honeypot_fields', $fields, $form_html);
         
         return $form_html . $fields;
-    }
-    
-    /**
-     * Add time trap field to form
-     * 
-     * @param string $form_html Form HTML
-     * @return string Modified form HTML
-     */
-    protected function add_time_trap($form_html) {
-        $time_trap = SpamXpert::get_instance()->get_module('time_trap');
-        if (!$time_trap) {
-            return $form_html;
-        }
-        
-        $field = $time_trap->generate_field();
-        
-        // Allow developers to modify time trap field for this integration
-        $field = apply_filters('spamxpert_' . $this->slug . '_time_trap_field', $field, $form_html);
-        
-        return $form_html . $field;
     }
     
     /**
@@ -118,7 +105,12 @@ abstract class SpamXpert_Integration_Base {
         // Allow developers to modify validation data
         $data = apply_filters('spamxpert_' . $this->slug . '_validation_data', $data);
         
-        $result = $validator->validate($this->slug, $data);
+        $result = $validator->validate_submission($data, $this->slug);
+        
+        // Convert string error to WP_Error for consistency
+        if (is_string($result)) {
+            return new WP_Error('spam_detected', $result);
+        }
         
         // Allow developers to override validation result
         return apply_filters('spamxpert_' . $this->slug . '_validation_result', $result, $data);

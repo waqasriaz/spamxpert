@@ -133,10 +133,14 @@ class SpamXpert_Honeypot {
             'houzez_inquiry',
             'houzez_contact_form',
             'houzez_login',
-            'houzez_register'
+            'houzez_register',
+            'cf7' // Contact Form 7 has its own nonce system
         ));
         
-        if (!in_array($form_id, $skip_nonce_forms)) {
+        // Check if this is a CF7 form (form_id might be 'cf7' or 'wpcf7-f123-p456-o1' format)
+        $is_cf7_form = ($form_id === 'cf7' || strpos($form_id, 'wpcf7-') === 0);
+        
+        if (!in_array($form_id, $skip_nonce_forms) && !$is_cf7_form) {
             // Add nonce field
             $html .= wp_nonce_field('spamxpert_form_' . $form_id, 'spamxpert_nonce', true, false);
         }
