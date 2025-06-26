@@ -52,15 +52,28 @@ class SpamXpert_Validator {
             'houzez_inquiry',
             'houzez_contact_form',
             'houzez_login',
-            'houzez_register'
+            'houzez_register',
+            'houzez_review_form',
+            'houzez_property_agent_contact',
+            'houzez_agency_contact',
+            'houzez_realtor_contact',
+            'houzez_agent_contact',
+            'elementor_forms',
+            'elementor_login'
         ));
         
         if (!in_array($form_type, $skip_nonce_forms)) {
             if (!isset($form_data[$nonce_field]) || !wp_verify_nonce($form_data[$nonce_field], 'spamxpert_form_' . $form_type)) {
+                // Extract form_id if available
+                $form_id = spamxpert_extract_form_id($form_data);
+                
                 spamxpert_log_spam(array(
                     'form_type' => $form_type,
                     'reason' => 'invalid_nonce',
-                    'score' => 100
+                    'score' => 100,
+                    'form_data' => array(
+                        'form_id' => $form_id
+                    )
                 ));
                 return __('Security check failed. Please refresh the page and try again.', 'spamxpert');
             }

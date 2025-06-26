@@ -46,7 +46,10 @@ class SpamXpert_Time_Trap {
             spamxpert_log_spam(array(
                 'form_type' => $form_id,
                 'reason' => 'invalid_time_field',
-                'score' => 100
+                'score' => 100,
+                'form_data' => array(
+                    'form_id' => spamxpert_extract_form_id()
+                )
             ));
             return __('Invalid form submission.', 'spamxpert');
         }
@@ -66,7 +69,8 @@ class SpamXpert_Time_Trap {
                 'score' => 90,
                 'form_data' => array(
                     'time_diff' => $time_diff,
-                    'threshold' => $threshold
+                    'threshold' => $threshold,
+                    'form_id' => spamxpert_extract_form_id()
                 )
             ));
             return __('Form submitted too quickly. Please try again.', 'spamxpert');
@@ -79,7 +83,8 @@ class SpamXpert_Time_Trap {
                 'reason' => 'expired_form',
                 'score' => 50,
                 'form_data' => array(
-                    'time_diff' => $time_diff
+                    'time_diff' => $time_diff,
+                    'form_id' => spamxpert_extract_form_id()
                 )
             ));
             return __('Form has expired. Please refresh the page and try again.', 'spamxpert');

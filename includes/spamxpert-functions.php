@@ -17,16 +17,19 @@ if (!defined('ABSPATH')) {
  * @return string
  */
 function spamxpert_get_user_ip() {
-    $ip_keys = array('HTTP_CF_CONNECTING_IP', 'HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
+    $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR');
     
     foreach ($ip_keys as $key) {
         if (array_key_exists($key, $_SERVER) === true) {
             $ip = $_SERVER[$key];
+            
+            // Handle comma-separated IPs
             if (strpos($ip, ',') !== false) {
-                $ip = explode(',', $ip)[0];
+                $ip = explode(',', $ip);
+                $ip = trim($ip[0]);
             }
-            $ip = trim($ip);
-            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
                 return $ip;
             }
         }
@@ -192,6 +195,77 @@ function spamxpert_get_stats($period = 'all') {
     );
     
     return $stats;
+}
+
+/**
+ * Extract form ID from form data
+ *
+ * @param array $form_data Form data (defaults to $_POST if not provided)
+ * @return string|null
+ */
+function spamxpert_extract_form_id($form_data = null) {
+    if ($form_data === null) {
+        $form_data = $_POST;
+    }
+    
+    // Common form ID fields
+    if (isset($form_data['form_id'])) {
+        return $form_data['form_id'];
+    }
+    
+    // Contact Form 7
+    if (isset($form_data['_wpcf7'])) {
+        return 'cf7_' . $form_data['_wpcf7'];
+    }
+    
+    // Elementor Forms
+    if (isset($form_data['form_id_elementor'])) {
+        return $form_data['form_id_elementor'];
+    } elseif (isset($form_data['form_fields']) && isset($form_data['form_id'])) {
+        // Elementor forms via AJAX
+        return 'elementor_' . $form_data['form_id'];
+    }
+    
+    // Gravity Forms
+    if (isset($form_data['gform_submit'])) {
+        return 'gf_' . $form_data['gform_submit'];
+    }
+    
+    // WPForms
+    if (isset($form_data['wpforms']['id'])) {
+        return 'wpf_' . $form_data['wpforms']['id'];
+    } elseif (isset($form_data['wpforms_id'])) {
+        return 'wpf_' . $form_data['wpforms_id'];
+    }
+    
+    // Ninja Forms
+    if (isset($form_data['formData']) && is_array($form_data['formData'])) {
+        foreach ($form_data['formData'] as $field) {
+            if (isset($field['name']) && $field['name'] === 'form_id' && isset($field['value'])) {
+                return 'nf_' . $field['value'];
+            }
+        }
+    } elseif (isset($form_data['form_id']) && isset($form_data['nf_ajax_submit'])) {
+        return 'nf_' . $form_data['form_id'];
+    }
+    
+    // Houzez forms might have property_id
+    if (isset($form_data['property_id'])) {
+        return 'property_' . $form_data['property_id'];
+    }
+    
+    // Formidable Forms
+    if (isset($form_data['form_id']) && isset($form_data['frm_action'])) {
+        return 'frm_' . $form_data['form_id'];
+    }
+    
+    // Caldera Forms
+    if (isset($form_data['_cf_frm_id'])) {
+        return 'caldera_' . $form_data['_cf_frm_id'];
+    }
+    
+    // Apply filter for custom form ID extraction
+    return apply_filters('spamxpert_extract_form_id', null, $form_data);
 }
 
 // Hook for cleaning old logs

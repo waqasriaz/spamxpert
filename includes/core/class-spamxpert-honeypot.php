@@ -171,6 +171,9 @@ class SpamXpert_Honeypot {
         $session_key = $this->get_session_key($form_id);
         $honeypot_fields = array();
         
+        // Extract actual form_id from form data
+        $actual_form_id = spamxpert_extract_form_id($form_data);
+        
         // Check if honeypot fields exist in session
         if (isset($_SESSION[$session_key])) {
             $honeypot_fields = $_SESSION[$session_key];
@@ -182,7 +185,7 @@ class SpamXpert_Honeypot {
                     spamxpert_log_spam(array(
                         'form_type' => $form_id,
                         'reason' => 'honeypot_filled',
-                        'form_data' => $form_data
+                        'form_data' => array_merge($form_data, array('form_id' => $actual_form_id))
                     ));
                     return __('Spam detected: Invalid form submission.', 'spamxpert');
                 }
@@ -212,7 +215,7 @@ class SpamXpert_Honeypot {
             spamxpert_log_spam(array(
                 'form_type' => $form_id,
                 'reason' => 'honeypot_filled',
-                'form_data' => $form_data,
+                'form_data' => array_merge($form_data, array('form_id' => $actual_form_id)),
                 'filled_honeypots' => $suspicious_fields
             ));
             return __('Spam detected: Invalid form submission.', 'spamxpert');

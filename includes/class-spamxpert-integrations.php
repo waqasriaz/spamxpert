@@ -59,11 +59,17 @@ class SpamXpert_Integrations {
     /**
      * Load third-party integrations
      */
-    private function load_third_party_integrations() {
+    private function load_third_party_integrations() { 
         // Contact Form 7 integration
         if (class_exists('WPCF7')) {
             require_once SPAMXPERT_PLUGIN_DIR . 'includes/integrations/class-spamxpert-integration-cf7.php';
             $this->integrations['cf7'] = new SpamXpert_Integration_CF7();
+        }
+        
+        // Elementor Forms integration
+        if (class_exists('\ElementorPro\Plugin')) {
+            require_once SPAMXPERT_PLUGIN_DIR . 'includes/integrations/class-spamxpert-integration-elementor-forms.php';
+            $this->integrations['elementor_forms'] = new SpamXpert_Integration_Elementor_Forms();
         }
         
         // Houzez theme integration

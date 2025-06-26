@@ -35,9 +35,9 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
      */
     protected function init() {
 
-        // Agent Contact Form
+        // Property Agent Contact Form (on property pages)
         add_action('houzez_property_agent_contact_fields', array($this, 'output_honeypot_fields'), 10);
-        add_filter('houzez_property_agent_contact_validation', array($this, 'validate_agent_form'), 10, 2);
+        add_filter('houzez_property_agent_contact_validation', array($this, 'validate_property_agent_form'), 10, 2);
         
         // Schedule Tour Form
         add_action('houzez_schedule_tour_fields', array($this, 'output_honeypot_fields'), 10);
@@ -47,7 +47,7 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
         add_action('houzez_inquiry_form_fields', array($this, 'output_honeypot_fields'), 10);
         add_filter('houzez_ele_inquiry_form_validation', array($this, 'validate_inquiry_form'), 10, 2);
 
-        // Contact Form (Elementor Widget)
+        // Contact Form (Elementor Widget - property pages)
         add_action('houzez_contact_form_fields', array($this, 'output_honeypot_fields'), 10);
         add_filter('houzez_ele_contact_form_validation', array($this, 'validate_contact_form'), 10, 2);
         
@@ -57,6 +57,14 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
         
         add_action('houzez_register_form_fields', array($this, 'output_honeypot_fields'), 10);
         add_action('houzez_before_register', array($this, 'validate_register_form'), 10);
+        
+        // Agent/Agency Profile Contact Forms (on agent/agency profile pages)
+        add_action( 'houzez_realtor_contact_form_fields', array( $this, 'output_honeypot_fields' ), 10 );
+        add_action( 'houzez_before_realtor_form_submission', array( $this, 'validate_realtor_contact_form' ), 10 );
+        
+        // Review form
+        add_action( 'houzez_review_form_fields', array( $this, 'output_honeypot_fields' ) );
+        add_filter( 'houzez_before_review_submission', array( $this, 'filter_review_submission' ), 10, 2 );
         
         // Add JavaScript for forms
         add_action('wp_footer', array($this, 'add_form_scripts'), 20);
@@ -88,7 +96,9 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
                 'houzez_inquiry_form_fields' => 'houzez_inquiry',
                 'houzez_contact_form_fields' => 'houzez_contact_form',
                 'houzez_login_form_fields' => 'houzez_login',
-                'houzez_register_form_fields' => 'houzez_register'
+                'houzez_register_form_fields' => 'houzez_register',
+                'houzez_realtor_contact_form_fields' => 'houzez_agent_contact',
+                'houzez_review_form_fields' => 'houzez_review_form'
             );
             
             $current_hook = current_filter();
@@ -105,11 +115,11 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
      * @param array $data Form data
      * @return array
      */
-    public function validate_agent_form($errors, $data) {
+    public function validate_property_agent_form($errors, $data) {
         $validator = SpamXpert::get_instance()->get_module('validator');
         
         if ($validator) {
-            $result = $validator->validate_submission($data, 'houzez_agent_contact');
+            $result = $validator->validate_submission($data, 'houzez_property_agent_contact');
             
             if ($result !== true) {
                 // Module already logged the spam attempt with proper details
@@ -119,6 +129,31 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
         }
         
         return $errors;
+    }
+
+    /**
+     * Validate realtor contact form
+     */
+    public function validate_realtor_contact_form() {
+        $validator = SpamXpert::get_instance()->get_module('validator');
+        
+        if ($validator) {
+            $realtor_type = isset($_POST['agent_type']) ? $_POST['agent_type'] : '';
+            if($realtor_type == 'agency_info') {
+                $form_type = 'houzez_agency_contact';   
+            } else {
+                $form_type = 'houzez_agent_contact';
+            }
+            $result = $validator->validate_submission($_POST, $form_type);
+            
+            if ($result !== true) {
+                wp_send_json(array(
+                    'success' => false,
+                    'msg' => esc_html__('Your submission was blocked. Please try again.', 'spamxpert')
+                ));
+                wp_die();
+            }
+        }
     }
 
     /**
@@ -229,6 +264,42 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
     }
 
     /**
+     * Filter review submission
+     *
+     * @param bool $result Validation result
+     * @param array $data Form data
+     * @return bool
+     */
+    public function filter_review_submission($result, $data) {
+        $validator = SpamXpert::get_instance()->get_module('validator');
+        
+        if ( ! $validator ) {
+            return $result;
+        }
+        
+        // Validate submission
+        $validated = $validator->validate_submission( $data, 'houzez_review_form' );
+        
+        if ( $validated !== true ) {
+            // For AJAX requests, return JSON error
+            if ( wp_doing_ajax() ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Your submission has been blocked. Please try again.', 'spamxpert' )
+                ) );
+                wp_die();
+            }
+            
+            // For non-AJAX, return WP_Error
+            return new WP_Error( 
+                'spam_detected', 
+                esc_html__( 'Your submission has been blocked. Please try again.', 'spamxpert' ) 
+            );
+        }
+        
+        return $result;
+    }
+
+    /**
      * Add JavaScript for Houzez forms
      */
     public function add_form_scripts() {
@@ -266,6 +337,20 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
             
             // Handle Elementor contact forms
             $('.houzez-contact-form-js').on('click', function(e) {
+                var form = $(this).closest('form');
+                var honeypotFields = form.find('.spamxpert-hp-field input');
+                
+                honeypotFields.each(function() {
+                    if ($(this).is(':checkbox')) {
+                        $(this).prop('checked', false);
+                    } else {
+                        $(this).val('');
+                    }
+                });
+            });
+            
+            // Handle review form
+            $('#submit-review').on('click', function(e) {
                 var form = $(this).closest('form');
                 var honeypotFields = form.find('.spamxpert-hp-field input');
                 
