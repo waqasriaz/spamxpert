@@ -41,9 +41,11 @@ yarn-error.log*
 # Composer (if you add any later)
 vendor/
 composer.lock
+cursor-rules
 
 # Build files
 *.zip
+cursor-rules/
 *.tar.gz
 
 # Temporary files
