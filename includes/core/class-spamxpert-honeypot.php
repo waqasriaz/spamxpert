@@ -40,6 +40,12 @@ class SpamXpert_Honeypot {
         add_action('wp_ajax_nopriv_houzez_schedule_send_message', array($this, 'start_session'), 0);
         add_action('wp_ajax_houzez_ele_inquiry_form', array($this, 'start_session'), 0);
         add_action('wp_ajax_nopriv_houzez_ele_inquiry_form', array($this, 'start_session'), 0);
+        add_action('wp_ajax_houzez_ele_contact_form', array($this, 'start_session'), 0);
+        add_action('wp_ajax_nopriv_houzez_ele_contact_form', array($this, 'start_session'), 0);
+        add_action('wp_ajax_houzez_login', array($this, 'start_session'), 0);
+        add_action('wp_ajax_nopriv_houzez_login', array($this, 'start_session'), 0);
+        add_action('wp_ajax_houzez_register', array($this, 'start_session'), 0);
+        add_action('wp_ajax_nopriv_houzez_register', array($this, 'start_session'), 0);
     }
 
     /**
@@ -124,7 +130,10 @@ class SpamXpert_Honeypot {
         $skip_nonce_forms = apply_filters('spamxpert_skip_nonce_generation', array(
             'houzez_agent_contact',
             'houzez_schedule_tour',
-            'houzez_inquiry'
+            'houzez_inquiry',
+            'houzez_contact_form',
+            'houzez_login',
+            'houzez_register'
         ));
         
         if (!in_array($form_id, $skip_nonce_forms)) {

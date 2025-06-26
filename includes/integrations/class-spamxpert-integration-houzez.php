@@ -51,6 +51,13 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
         add_action('houzez_contact_form_fields', array($this, 'output_honeypot_fields'), 10);
         add_filter('houzez_ele_contact_form_validation', array($this, 'validate_contact_form'), 10, 2);
         
+        // Login/Register Forms
+        add_action('houzez_login_form_fields', array($this, 'output_honeypot_fields'), 10);
+        add_action('houzez_before_login', array($this, 'validate_login_form'), 10);
+        
+        add_action('houzez_register_form_fields', array($this, 'output_honeypot_fields'), 10);
+        add_action('houzez_before_register', array($this, 'validate_register_form'), 10);
+        
         // Add JavaScript for forms
         add_action('wp_footer', array($this, 'add_form_scripts'), 20);
     }
@@ -79,7 +86,9 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
                 'houzez_property_agent_contact_fields' => 'houzez_agent_contact',
                 'houzez_schedule_tour_fields' => 'houzez_schedule_tour',
                 'houzez_inquiry_form_fields' => 'houzez_inquiry',
-                'houzez_contact_form_fields' => 'houzez_contact_form'
+                'houzez_contact_form_fields' => 'houzez_contact_form',
+                'houzez_login_form_fields' => 'houzez_login',
+                'houzez_register_form_fields' => 'houzez_register'
             );
             
             $current_hook = current_filter();
@@ -179,6 +188,44 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
         }
         
         return $errors;
+    }
+
+    /**
+     * Validate login form
+     */
+    public function validate_login_form() {
+        $validator = SpamXpert::get_instance()->get_module('validator');
+        
+        if ($validator) {
+            $result = $validator->validate_submission($_POST, 'houzez_login');
+            
+            if ($result !== true) {
+                wp_send_json(array(
+                    'success' => false,
+                    'msg' => esc_html__('Your submission was blocked. Please try again.', 'spamxpert')
+                ));
+                wp_die();
+            }
+        }
+    }
+
+    /**
+     * Validate register form
+     */
+    public function validate_register_form() {
+        $validator = SpamXpert::get_instance()->get_module('validator');
+        
+        if ($validator) {
+            $result = $validator->validate_submission($_POST, 'houzez_register');
+            
+            if ($result !== true) {
+                wp_send_json(array(
+                    'success' => false,
+                    'msg' => esc_html__('Your submission was blocked. Please try again.', 'spamxpert')
+                ));
+                wp_die();
+            }
+        }
     }
 
     /**

@@ -78,6 +78,39 @@ class SpamXpert_Integration_WP_Login extends SpamXpert_Integration_Base {
             return $user;
         }
         
+        // Skip validation for Houzez custom login form (handled by Houzez integration)
+        if (isset($_POST['action']) && $_POST['action'] === 'houzez_login') {
+            return $user;
+        }
+        
+        // Skip validation for other AJAX login actions that have their own integrations
+        $skip_actions = apply_filters('spamxpert_skip_wp_login_validation_actions', array(
+            'houzez_login',
+            'houzez_register'
+        ));
+        
+        if (isset($_POST['action']) && in_array($_POST['action'], $skip_actions)) {
+            return $user;
+        }
+        
+        // Only validate if this is a standard WordPress login form submission
+        // Check if we're on wp-login.php or if honeypot fields exist
+        $is_wp_login_page = (isset($_SERVER['SCRIPT_NAME']) && strpos($_SERVER['SCRIPT_NAME'], 'wp-login.php') !== false);
+        $has_honeypot_fields = false;
+        
+        // Check if any honeypot fields from our wp_login form exist
+        foreach ($_POST as $key => $value) {
+            if (strpos($key, '_hp') !== false || strpos($key, 'spamxpert_') === 0) {
+                $has_honeypot_fields = true;
+                break;
+            }
+        }
+        
+        // Skip validation if not on wp-login.php and no honeypot fields present
+        if (!$is_wp_login_page && !$has_honeypot_fields && !doing_action('wp_login')) {
+            return $user;
+        }
+        
         // Get validator
         $validator = SpamXpert::get_instance()->get_module('validator');
         if (!$validator) {

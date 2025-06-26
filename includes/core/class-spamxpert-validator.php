@@ -49,7 +49,10 @@ class SpamXpert_Validator {
         $skip_nonce_forms = apply_filters('spamxpert_skip_nonce_validation', array(
             'houzez_agent_contact',
             'houzez_schedule_tour', 
-            'houzez_inquiry'
+            'houzez_inquiry',
+            'houzez_contact_form',
+            'houzez_login',
+            'houzez_register'
         ));
         
         if (!in_array($form_type, $skip_nonce_forms)) {
