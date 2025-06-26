@@ -1,5 +1,6 @@
 # Exclude all markdown files
 *.md
+*.mdc
 
 # macOS files
 .DS_Store
