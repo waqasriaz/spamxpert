@@ -43,9 +43,13 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
         add_action('houzez_schedule_tour_fields', array($this, 'output_honeypot_fields'), 10);
         add_filter('houzez_schedule_tour_validation', array($this, 'validate_schedule_tour'), 10, 2);
         
-        // Property Inquiry Form (Elementor Widget)
+        // Inquiry Form (Elementor Widget)
         add_action('houzez_inquiry_form_fields', array($this, 'output_honeypot_fields'), 10);
         add_filter('houzez_ele_inquiry_form_validation', array($this, 'validate_inquiry_form'), 10, 2);
+
+        // Contact Form (Elementor Widget)
+        add_action('houzez_contact_form_fields', array($this, 'output_honeypot_fields'), 10);
+        add_filter('houzez_ele_contact_form_validation', array($this, 'validate_contact_form'), 10, 2);
         
         // Add JavaScript for forms
         add_action('wp_footer', array($this, 'add_form_scripts'), 20);
@@ -74,7 +78,8 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
             $form_id_map = array(
                 'houzez_property_agent_contact_fields' => 'houzez_agent_contact',
                 'houzez_schedule_tour_fields' => 'houzez_schedule_tour',
-                'houzez_inquiry_form_fields' => 'houzez_inquiry'
+                'houzez_inquiry_form_fields' => 'houzez_inquiry',
+                'houzez_contact_form_fields' => 'houzez_contact_form'
             );
             
             $current_hook = current_filter();
@@ -154,19 +159,39 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
     }
 
     /**
+     * Validate contact form (Elementor widget)
+     *
+     * @param array $errors Current errors
+     * @param array $data Form data
+     * @return array
+     */
+    public function validate_contact_form($errors, $data) {
+        $validator = SpamXpert::get_instance()->get_module('validator');
+        
+        if ($validator) {
+            $result = $validator->validate_submission($data, 'houzez_contact_form');
+            
+            if ($result !== true) {
+                // Module already logged the spam attempt with proper details
+                // No need to log again at integration level
+                $errors[] = esc_html__('Your submission was blocked. Please try again.', 'spamxpert');
+            }
+        }
+        
+        return $errors;
+    }
+
+    /**
      * Add JavaScript for Houzez forms
      */
     public function add_form_scripts() {
-        if (!is_singular('property')) {
-            return;
-        }
         ?>
         <script type="text/javascript">
         jQuery(document).ready(function($) {
             // Handle agent contact form
             $('.houzez_agent_property_form').on('click', function(e) {
                 var form = $(this).closest('form');
-                var honeypotFields = form.find('.spamxpert-hp-field');
+                var honeypotFields = form.find('.spamxpert-hp-field input');
                 
                 // Clear honeypot fields before submission
                 honeypotFields.each(function() {
@@ -181,7 +206,21 @@ class SpamXpert_Integration_Houzez extends SpamXpert_Integration_Base {
             // Handle schedule tour form
             $('.schedule_tour_form').on('click', function(e) {
                 var form = $(this).closest('form');
-                var honeypotFields = form.find('.spamxpert-hp-field');
+                var honeypotFields = form.find('.spamxpert-hp-field input');
+                
+                honeypotFields.each(function() {
+                    if ($(this).is(':checkbox')) {
+                        $(this).prop('checked', false);
+                    } else {
+                        $(this).val('');
+                    }
+                });
+            });
+            
+            // Handle Elementor contact forms
+            $('.houzez-contact-form-js').on('click', function(e) {
+                var form = $(this).closest('form');
+                var honeypotFields = form.find('.spamxpert-hp-field input');
                 
                 honeypotFields.each(function() {
                     if ($(this).is(':checkbox')) {
